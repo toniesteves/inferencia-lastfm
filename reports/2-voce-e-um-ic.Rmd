@@ -35,32 +35,6 @@ lastfm = lastfm %>%
 glimpse(lastfm)
 ```
 
-```{r}
-# library(boot)
-# 
-# theta <- function(d, i) {
-#     agrupado = d %>% 
-#         slice(i) %>% 
-#         group_by(sex) %>% 
-#         summarise(media = mean(d_art))
-#     m = agrupado %>% filter(sex == "m") %>% pull(media)
-#     f = agrupado %>% filter(sex == "f") %>% pull(media)
-#     m - f
-# }
-# 
-# booted <- boot(data = iat, 
-#                statistic = theta, 
-#                R = 2000)
-# 
-# ci = tidy(booted, 
-#           conf.level = .95,
-#           conf.method = "bca",
-#           conf.int = TRUE)
-# 
-# glimpse(ci)
-```
-
-
 ## Proporção de artistas novos e popularidade
 
 Utilizaremos ICs para estimar duas métricas sobre os usuários do LastFM em geral durante um período de 6 meses. Em ambos os casos faremos isso a partir de uma amostra de 300 usuários. As duas métricas são: 
@@ -164,24 +138,49 @@ ggplot() +
   labs(title = expression("Intervalo estimado via bootstrap"))
 ```
 
+#### Comparação Bootstrap Library
+
+```{r}
+library(boot)
+
+theta = function(df, i) {
+  df %>%
+    slice(i) %>%
+    pull(news_prop_artist) %>%
+    mean()
+}
+
+booted <- boot(data = mylastfm,
+               statistic = theta,
+               R = 2000)
+
+
+ci = tidy(booted,
+          conf.level = .95,
+          conf.method = "bca",
+          conf.int = TRUE)
+
+# glimpse(ci)
+```
+
 2. Para os usuários que gostam de música muito pop (mediana_pop > 5), qual a correlação entre a popularidade mediana dos artistas escutado e a proporção dos artistas escutados que eram novos. 
 
 ```{r}
-mylastfm %>%
+mylastfm_two = mylastfm%>%
   filter(mediana_pop > 5) %>%
   mutate(pearson_corr =  cor(mediana_pop, news_prop_artist, method = "pearson"))
 
 
 funcao_theta = function(df) {
   df %>%
-    pull(news_prop_artist) %>%
+    pull(pearson_corr) %>%
     mean()
 }
-
-theta = funcao_theta(mylastfm)
+glimpse(mylastfm_two)
+theta = funcao_theta(mylastfm_two)
 
 set.seed(1212)
-amostra = mylastfm %>%
+amostra = mylastfm_two %>%
   sample_n(200)
 
 theta_c = funcao_theta(amostra)
@@ -202,7 +201,7 @@ set.seed(1212)
 
 # A REAMOSTRAGEM
 reamostragens = tibble(i = 1:repeticoes) %>% 
-  mutate(theta_c_s = map_dbl(i, ~ um_bootstrap(mylastfm)))
+  mutate(theta_c_s = map_dbl(i, ~ um_bootstrap(mylastfm_two)))
 
 reamostragens
 ```
