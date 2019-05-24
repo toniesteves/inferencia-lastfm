@@ -26,7 +26,7 @@ theme_set(theme_bw())
 ```{r}
 set.seed(12345)
 
-lastfm = read_csv(here::here("inferencia-lastfm/data/experimento-lastfm.csv"), 
+lastfm = read_csv(here::here("Git/inferencia-lastfm/data/experimento-lastfm.csv"), 
                   col_types = cols(.default = col_double(), 
                                    user = col_character()))
 
@@ -165,6 +165,16 @@ ci = tidy(booted,
 glimpse(ci)
 ```
 
+```{r}
+# A REAMOSTRAGEM
+repeticoes = 4000 # pelo menos 2000, mas mais não faz mal.
+
+reamostragens = tibble(i = 1:repeticoes) %>% 
+  mutate(theta_c_s = map_dbl(i, ~ ci(mylastfm)))
+
+reamostragens
+```
+
 2. Para os usuários que gostam de música muito pop (mediana_pop > 5), qual a correlação entre a popularidade mediana dos artistas escutado e a proporção dos artistas escutados que eram novos. 
 
 ```{r}
@@ -188,14 +198,6 @@ theta_c = funcao_theta(amostra)
 ```{r}
 repeticoes = 4000 # pelo menos 2000, mas mais não faz mal.
 
-# um_bootstrap <- function(x){
-#   my_df_sliced = x %>% select(mediana_pop, news_prop_artist)
-#   boot_x <- sample(my_df_sliced,              # amostre dos dados
-#                    size = NROW(my_df_sliced), # tamanho igual ao recebido
-#                    replace = TRUE)            # aqui é o bootstrap
-#   return(with(boot_x, cor(mediana_pop, news_prop_artist,method = "pearson")))
-# }
-
 um_bootstrap = function(df) {
 
     boot_df <- sample_n(df,
@@ -215,6 +217,7 @@ reamostragens = tibble(i = 1:repeticoes) %>%
 
 reamostragens
 ```
+
 ```{r}
 reamostragens %>%
   ggplot(aes(x = theta_c_s)) +
@@ -272,4 +275,5 @@ ggplot() +
   # geom_vline(xintercept = theta_c, color = "dark green") +
   labs(title = expression("Intervalo estimado via bootstrap"))
 ```
+
 Crie intervalos com 95% de confiança.

@@ -1722,11 +1722,11 @@ theta</code></pre>
 <p>Como seria nossa visão dos dados se tivéssemos apenas uma amostra dos dados? <code>sample(x, n)</code> faz uma amostra aleatórioa de <code>n</code> elementos tirados do vetor <code>x</code>:</p>
 <p>Se calcularmos a média do números de novos artistas escutados para três amostras de 100 elementos, teremos 3 resultados diferentes (3 <span class="math inline">\(\hat{\theta}\)</span> diferentes):</p>
 <pre class="r"><code>lastfm %&gt;% pull(news) %&gt;% sample(size = 100) %&gt;% mean()</code></pre>
-<pre><code>## [1] 33.97</code></pre>
+<pre><code>## [1] 32.64</code></pre>
 <pre class="r"><code>lastfm %&gt;% pull(news) %&gt;% sample(100) %&gt;% mean()</code></pre>
-<pre><code>## [1] 28.2</code></pre>
+<pre><code>## [1] 30.59</code></pre>
 <pre class="r"><code>lastfm %&gt;% pull(news) %&gt;% sample(100) %&gt;% mean()</code></pre>
-<pre><code>## [1] 38.18</code></pre>
+<pre><code>## [1] 32.06</code></pre>
 <p>Se fizermos isso muitas vezes vemos como essa variação de <span class="math inline">\(\hat{\theta}\)</span> acontece. A distribuição dos valores de uma estatística em diferentes amostras de uma população se chama <strong>distribuição amostral</strong> da estatística.</p>
 <pre class="r"><code>set.seed(1)
 
