@@ -26,7 +26,7 @@ theme_set(theme_bw())
 ```{r}
 set.seed(12345)
 
-lastfm = read_csv(here::here("Git/inferencia-lastfm/data/experimento-lastfm.csv"), 
+lastfm = read_csv(here::here("data/experimento-lastfm.csv"), 
                   col_types = cols(.default = col_double(), 
                                    user = col_character()))
 
@@ -41,7 +41,7 @@ glimpse(lastfm)
 
 Utilizaremos ICs para estimar duas métricas sobre os usuários do LastFM em geral durante um período de 6 meses. Em ambos os casos faremos isso a partir de uma amostra de 300 usuários. As duas métricas são: 
 
-1. Qual a proporção de novos artistas em geral escutada por usuários?
+# 1 - Qual a proporção de novos artistas em geral escutada por usuários?
 
 ```{r}
 mylastfm = lastfm %>% 
@@ -75,7 +75,6 @@ um_bootstrap <- function(x){
 
 set.seed(1212)
 
-# A REAMOSTRAGEM
 reamostragens = tibble(i = 1:repeticoes) %>% 
   mutate(theta_c_s = map_dbl(i, ~ um_bootstrap(mylastfm)))
 
@@ -136,11 +135,10 @@ ggplot() +
   geom_vline(xintercept = theta,
              color = "blue",
              size = 1.2) +
-  # geom_vline(xintercept = theta_c, color = "dark green") +
   labs(title = expression("Intervalo estimado via bootstrap"))
 ```
 
-#### Comparação Bootstrap Library
+# 1.1 - Proporção de novos artistas em geral escutada por usuários (Bootstrap Library)
 
 ```{r}
 library(boot)
@@ -166,16 +164,34 @@ glimpse(ci)
 ```
 
 ```{r}
-# A REAMOSTRAGEM
-repeticoes = 4000 # pelo menos 2000, mas mais não faz mal.
-
-reamostragens = tibble(i = 1:repeticoes) %>% 
-  mutate(theta_c_s = map_dbl(i, ~ ci(mylastfm)))
-
-reamostragens
+ggplot() +
+  geom_rect(
+    data = intervalo,
+    aes(xmin = valor_i, xmax = valor_s),
+    ymin = -Inf,
+    ymax = Inf,
+    fill = "gold",
+    alpha = .25
+  ) +
+  geom_histogram(
+    data = reamostragens,
+    aes(theta_c_s),
+    binwidth = .005,
+    fill = "white",
+    colour = "darkgrey"
+  ) +
+  geom_vline(xintercept = theta_c,
+             color = "blue",
+             size = 1.2) +
+  # geom_vline(xintercept = theta_c, color = "dark green") +
+  labs(title = expression("Intervalo estimado via bootstrap"))
 ```
 
-2. Para os usuários que gostam de música muito pop (mediana_pop > 5), qual a correlação entre a popularidade mediana dos artistas escutado e a proporção dos artistas escutados que eram novos. 
+# 1.1 - Conclusões.
+
+Podemos observar que a média dos novos artistas escutados das amostragens, condiz com a média da população como um todo, com valores no intervalo de 0,23 e 0,26, com 95% de confiança, ou seja, em 95% do tempo isso é válido.
+
+# 2 - Para os usuários que gostam de música muito pop (mediana_pop > 5), qual a correlação entre a popularidade mediana dos artistas escutado e a proporção dos artistas escutados que eram novos. 
 
 ```{r}
 mylastfm_two = mylastfm%>%
@@ -211,7 +227,6 @@ um_bootstrap = function(df) {
 
 set.seed(1212)
 
-# A REAMOSTRAGEM
 reamostragens = tibble(i = 1:repeticoes) %>% 
   mutate(theta_c_s = map_dbl(i, ~ um_bootstrap(mylastfm_two)))
 
@@ -272,8 +287,64 @@ ggplot() +
   geom_vline(xintercept = theta,
              color = "blue",
              size = 1.2) +
-  # geom_vline(xintercept = theta_c, color = "dark green") +
   labs(title = expression("Intervalo estimado via bootstrap"))
 ```
 
-Crie intervalos com 95% de confiança.
+
+# 2.1 - Correlação entre a popularidade mediana dos artistas escutado e a proporção dos artistas escutados que eram novos (Bootstrap Library).
+
+```{r}
+library(boot)
+
+theta = function(df, i) {
+    
+    boot_df <- sample_n(df,
+                        NROW(df),
+                        replace = TRUE)
+    pearson = pull(boot_df %>%
+        slice(i) %>% 
+        summarise(pearson = cor(x = mediana_pop, y = news_prop_artist, method = "pearson")))
+
+    return(pearson)
+}
+
+booted <- boot(data = mylastfm,
+               statistic = theta,
+               R = 2000)
+
+
+ci = tidy(booted,
+          conf.level = .95,
+          conf.method = "bca",
+          conf.int = TRUE)
+
+glimpse(ci)
+```
+
+```{r}
+ggplot() +
+  geom_rect(
+    data = intervalo,
+    aes(xmin = valor_i, xmax = valor_s),
+    ymin = -Inf,
+    ymax = Inf,
+    fill = "gold",
+    alpha = .25
+  ) +
+  geom_histogram(
+    data = reamostragens,
+    aes(theta_c_s),
+    binwidth = .05,
+    fill = "white",
+    colour = "darkgrey"
+  ) +
+  geom_vline(xintercept = theta_c,
+             color = "blue",
+             size = 1.2) +
+labs(title = expression("Intervalo estimado via bootstrap"))
+```
+
+# 2.2 - Conclusões.
+
+A correlação entre a popularidade mediana dos artistas escutado e a proporção dos artistas novos escutados esteve no intervalo de -0.22 a 0.04, com 95% de confiança. Com esses valores não é possível afirmar, com confiança, que a correlação seja negativa. Podemos afirmar que a mesma é minimamente fraca, visto que os valores não estão próximos de -1 ou 1. Além disso a correlação das reamostragens, condiz com a média da população como um todo.
+
