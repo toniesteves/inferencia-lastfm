@@ -16,6 +16,8 @@ output:
 ```{r setup, include=FALSE, message=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
+library(broom)
+library(boot)
 theme_set(theme_bw())
 ```
 
