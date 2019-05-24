@@ -136,7 +136,7 @@ ggplot() +
   geom_vline(xintercept = theta,
              color = "blue",
              size = 1.2) +
-  geom_vline(xintercept = theta_c, color = "dark green") +
+  # geom_vline(xintercept = theta_c, color = "dark green") +
   labs(title = expression("Intervalo estimado via bootstrap"))
 ```
 
@@ -269,7 +269,7 @@ ggplot() +
   geom_vline(xintercept = theta,
              color = "blue",
              size = 1.2) +
-  geom_vline(xintercept = theta_c, color = "dark green") +
+  # geom_vline(xintercept = theta_c, color = "dark green") +
   labs(title = expression("Intervalo estimado via bootstrap"))
 ```
 Crie intervalos com 95% de confiança.
